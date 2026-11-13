@@ -1,0 +1,36 @@
+.navbar-custom {
+  background-color: rgb(1, 0, 75);
+  --bs-navbar-color: rgb(255, 255, 255);
+  --bs-navbar-hover-color: #b07a7a;
+  --bs-navbar-active-color: #000000;
+}
+
+.home-link:hover,
+.home-link:focus {
+  color: #ffe923;
+}
+
+.header-layout {
+  display: flex;
+  align-items: center;
+}
+
+.header-actions,
+.home-link,
+.header-spacer {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.home-link {
+  color: #ff6f00;
+  text-align: center;
+  text-decoration: none;
+}

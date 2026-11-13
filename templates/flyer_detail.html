@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{{ flyer.event_name }}{% endblock title %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2>{{ flyer.event_name }}</h2>
+    <p class="text-muted">
+      by {{ flyer.posted_by }} |
+      {{ flyer.event_date }} at {{ flyer.event_start_time }}
+    </p>
+  </div>
+
+  <div class="card-body">
+    {% if flyer.image %}
+      <img src="{{ flyer.image.url }}" alt="{{ flyer.event_name }}" class="img-fluid">
+    {% endif %}
+    <p>{{ flyer.description }}</p>
+    <p class="text-muted">Posted {{ flyer.upload_date }}</p>
+  </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Flyers{% endblock title %}
+
+{% block content %}
+{% for flyer in flyer_list %}
+<div class="card">
+  <div class="card-header">
+    <strong>{{ flyer.event_name }}</strong>
+    <span class="text-muted">
+      by {{ flyer.posted_by }} |
+      {{ flyer.event_date }} at {{ flyer.event_start_time }}
+    </span>
+  </div>
+  <div class="card-body">
+    {{ flyer.description }}
+    {% if flyer.image %}
+      <img src="{{ flyer.image.url }}" alt="{{ flyer.event_name }}" class="img-fluid">
+    {% endif %}
+  </div>
+</div>
+<br>
+{% empty %}
+<p>No flyers yet.</p>
+{% endfor %}
+{% endblock content %}
