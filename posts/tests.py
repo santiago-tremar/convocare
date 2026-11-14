@@ -37,6 +37,14 @@ class PosterTests(TestCase):
             self.user.poster_for.filter(pk=self.poster.pk).exists()
         )
 
+    def test_poster_detail_view(self):
+        response = self.client.get(self.poster.get_absolute_url())
+        no_response = self.client.get('/ps/100000000')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(no_response.status_code, 404)
+        self.assertContains(response, "An awesome Parish near you.")
+        self.assertTemplateUsed(response, 'poster_detail.html')
+
 class AnnouncementTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(
@@ -113,3 +121,20 @@ class FlyerTests(TestCase):
 
         with self.flyer.image.open("rb") as uploaded_image:
            self.assertEqual(uploaded_image.read(), self.image_content)
+
+    def test_flyer_list_view(self):
+        response = self.client.get(reverse("flyer_list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "<img")
+        self.assertContains(response, self.flyer.image.url)
+        self.assertTemplateUsed(response, 'flyer_list_all.html')
+
+    def test_flyer_detail_view(self):
+        response = self.client.get(self.flyer.get_absolute_url())
+        no_response = self.client.get('posts/100000/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(no_response.status_code, 404)
+        self.assertContains(response, "Awesome event")
+        self.assertContains(response, '<img')
+        self.assertContains(response, self.flyer.image.url)
+        self.assertTemplateUsed(response, 'flyer_detail.html')
