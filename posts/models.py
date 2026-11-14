@@ -27,6 +27,9 @@ class Poster(models.Model):
     def __str__(self):
         return self.name
 
+    def get_absolute_url(self):
+        return reverse("poster_detail", kwargs={"pk": self.pk})
+
 
 class Flyer(models.Model):
     """ A class for the Flyer images to be shared by admin users. """

@@ -3,24 +3,19 @@
 {% block title %}Flyers{% endblock title %}
 
 {% block content %}
-{% for flyer in flyer_list %}
-<div class="card">
-  <div class="card-header">
-    <strong>{{ flyer.event_name }}</strong>
-    <span class="text-muted">
-      by {{ flyer.posted_by }} |
-      {{ flyer.event_date }} at {{ flyer.event_start_time }}
-    </span>
-  </div>
-  <div class="card-body">
-    {{ flyer.description }}
+<div class="flyer-list">
+  {% for flyer in flyer_list %}
     {% if flyer.image %}
-      <img src="{{ flyer.image.url }}" alt="{{ flyer.event_name }}" class="img-fluid">
+      <a class="flyer-item" href="{{ flyer.get_absolute_url }}">
+        <img
+          src="{{ flyer.image.url }}"
+          alt="{{ flyer.event_name }}, {{ flyer.description}}"
+          class="flyer-image"
+        >
+      </a>
     {% endif %}
-  </div>
-</div>
-<br>
-{% empty %}
-<p>No flyers yet.</p>
+  {% empty %}
+    <p>No flyers yet.</p>
 {% endfor %}
+</div>
 {% endblock content %}

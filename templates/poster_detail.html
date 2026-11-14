@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}{{ poster.name }}{% endblock title %}
+
+{% block content %}
+<div class='container text-center'>
+    <div class='row'>
+
+        <div class='col'>
+            <h6>{{ poster.get_poster_type_display }}</h6>
+            <h1>{{ poster.name }}</h1>
+        </div>
+    </div>
+    <div class='row'>
+
+        <div class='col'>
+            <h4>{{ poster.bio }}</h4>
+            <p>Dirección: {{ poster.address }}</p>
+            <p>Teléfono: {{ poster.phone_number }}</p>
+            <p>Correo: {{ poster.email }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="flyer-list">
+  {% for flyer in flyer_list %}
+    {% if flyer.image %}
+      <a class="flyer-item" href="{{ flyer.get_absolute_url }}">
+        <img
+          src="{{ flyer.image.url }}"
+          alt="{{ flyer.event_name }}, {{ flyer.description }}"
+          class="flyer-image"
+        >
+      </a>
+    {% endif %}
+  {% empty %}
+    <p>{{ poster.name }} no ha compartido eventos todavía.</p>
+  {% endfor %}
+</div>
+
+{% endblock content %}
