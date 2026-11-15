@@ -11,3 +11,18 @@ class CustomUser(AbstractUser):
         Poster,
         blank=True,
     )
+    followed_parish = models.ForeignKey(
+        Poster,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="parish_followers",
+        limit_choices_to={"poster_type": "PARISH"},
+    )
+    followed_groups = models.ManyToManyField(
+        Poster,
+        blank=True,
+        related_name="group_followers",
+        symmetrical=False,
+        limit_choices_to={"poster_type": "GROUP"},
+    )

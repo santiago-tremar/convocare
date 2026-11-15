@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p>
+  You currently follow {{ current_parish.name }}. Following {{ new_parish.name }}
+  will unfollow {{ current_parish.name }}. Do you want to continue?
+</p>
+
+<form method="post" action="{% url 'toggle_follow' new_parish.pk %}">
+  {% csrf_token %}
+  <button type="submit" name="confirm" value="yes">
+    Confirm follow
+  </button>
+  <a href="{{ new_parish.get_absolute_url }}">Cancel</a>
+</form>
+{% endblock %}

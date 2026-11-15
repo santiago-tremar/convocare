@@ -138,3 +138,17 @@ class FlyerTests(TestCase):
         self.assertContains(response, '<img')
         self.assertContains(response, self.flyer.image.url)
         self.assertTemplateUsed(response, 'flyer_detail.html')
+
+    def test_flyer_following_list_unauthenticated_view(self):
+        response = self.client.get(reverse("following_flyer_list"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_flyer_following_list_authenticated_view(self):
+        self.user.followed_groups.add(self.poster)
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("following_flyer_list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "<img")
+        self.assertContains(response, self.flyer.image.url)
+        self.assertTemplateUsed(response, 'flyer_list_following.html')

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Flyers{% endblock title %}
+
+{% block content %}
+<div class="flyer-list">
+  {% for flyer in flyer_list %}
+    {% if flyer.image %}
+      <a class="flyer-item" href="{{ flyer.get_absolute_url }}">
+        <img
+          src="{{ flyer.image.url }}"
+          alt="{{ flyer.event_name }}, {{ flyer.description}}"
+          class="flyer-image"
+        >
+      </a>
+    {% endif %}
+  {% empty %}
+    <p>No flyers yet.</p>
+{% endfor %}
+</div>
+{% endblock content %}

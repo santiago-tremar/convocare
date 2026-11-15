@@ -17,6 +17,7 @@ class Poster(models.Model):
     address = models.CharField(max_length=255)
     email = models.EmailField()
     phone_number = PhoneNumberField(blank=True)
+    avatar = models.ImageField(upload_to='avatars/',blank=True)
     ## Remember to check Serializer documentation.
 
     @property

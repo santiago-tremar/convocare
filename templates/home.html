@@ -5,8 +5,9 @@
 {% block content %}
 {% if user.is_authenticated %}
 <p>Hi {{ user.username }}!</p>
-<p><a href="{% url 'flyer_list' %}" class='btn btn-primary' role='button'>View all Flyers</a></p>
+<p><a href="{% url 'following_flyer_list' %}" class='btn btn-primary' role='button'>View Following Flyers</a></p>
 {% else %}
-<p>You are not logged in</p>
+<p>You are not logged in.</p>
 {% endif %}
+<p><a href="{% url 'flyer_list' %}" class='btn btn-primary' role='button'>View all Flyers</a></p>
 {% endblock content %}
