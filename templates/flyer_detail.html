@@ -18,7 +18,7 @@
     <h2>{{ flyer.event_name }}</h2>
     <a href="{{ poster_detail.get_absolute_url }}"><p>Por {{ flyer.posted_by }}</p></a>
     <p>Evento: {{ flyer.event_date }} a las {{ flyer.event_start_time }}</p>
-    <p>{{ flyer.description }}</p>
+    <p>{{ flyer.description|linebreaksbr }}</p>
     <p>Para:
       {% for tag in target_tags %}
         <span class="tag-pill target-tag">{{ tag.name }}</span>

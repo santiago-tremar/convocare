@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Publicar Nuevo Flyer{% endblock title %}
+
+{% block content %}
+<h2>Nuevo Flyer</h2>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="row g-4">
+    <div class="col-md-6">
+      {{ form.image|as_crispy_field }}
+      <div class="flyer-upload-preview">
+        <p id="flyer-image-placeholder">Selecciona una imagen para ver la vista previa.</p>
+        <img id="flyer-image-preview" alt="Vista previa del flyer seleccionado">
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      {{ form.event_name|as_crispy_field }}
+      {{ form.posted_by|as_crispy_field }}
+      {{ form.description|as_crispy_field }}
+      {{ form.event_date|as_crispy_field }}
+      {{ form.event_start_time|as_crispy_field }}
+      <div class="border rounded p-3 mb-3">
+        {{ form.target_tags|as_crispy_field }}
+      </div>
+      <div class="border rounded p-3 mb-3">
+        {{ form.activity_tags|as_crispy_field }}
+      </div>
+      <div class="border rounded p-3 mb-3">
+        {{ form.organizer_tags|as_crispy_field }}
+      </div>
+      <button class="btn btn-success" type="submit">Publicar</button>
+    </div>
+  </div>
+</form>
+
+<script>
+  const imageInput = document.getElementById("id_image");
+  const imagePreview = document.getElementById("flyer-image-preview");
+  const imagePlaceholder = document.getElementById("flyer-image-placeholder");
+  let previewUrl;
+
+  imageInput.addEventListener("change", () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    const file = imageInput.files[0];
+    if (!file) {
+      imagePreview.classList.remove("is-visible");
+      imagePreview.removeAttribute("src");
+      imagePlaceholder.hidden = false;
+      return;
+    }
+
+    previewUrl = URL.createObjectURL(file);
+    imagePreview.src = previewUrl;
+    imagePreview.classList.add("is-visible");
+    imagePlaceholder.hidden = true;
+  });
+</script>
+{% endblock content %}

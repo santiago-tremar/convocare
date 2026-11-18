@@ -1,10 +1,12 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import ListView, DetailView
+from django.views.generic.edit import CreateView
 from django.views import View
 from django.utils import timezone
 
 from .models import Poster, Flyer, Announcement
+from .forms import FlyerForm
 
 from datetime import timedelta
 
@@ -80,6 +82,13 @@ class FlyerDetailView(DetailView):
         context["organizer_tags"] = self.object.tags.filter(category='ORGANIZER')
 
         return context
+
+
+class FlyerCreateView(CreateView):
+    """ Post a new Flyer. """
+    model = Flyer
+    template_name = "flyer_new.html"
+    form_class = FlyerForm
 
 
 class PosterDetailView(DetailView):
