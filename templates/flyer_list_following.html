@@ -3,41 +3,60 @@
 {% block title %}Flyers{% endblock title %}
 
 {% block content %}
-<div class="flyer-list">
-  <h1>Mi Parroquia</h1>
-  {% if parish_message %}
-    <p>{{ parish_message }}</p>
-  {% else %}
-  {% for flyer in parish_flyers %}
-    {% if flyer.image %}
-      <a class="flyer-item" href="{{ flyer.get_absolute_url }}">
-        <img
-          src="{{ flyer.image.url }}"
-          alt="{{ flyer.event_name }}, {{ flyer.description}}"
-          class="flyer-image"
-        >
-      </a>
+<div class="row">
+  <section class="col">
+    <h1>Mi Parroquia</h1>
+    {% if parish_announcements %}
+      <div class="announcement-box">
+        <p class="announcement-description">{{ parish_announcements.description }}</p>
+      </div>
     {% endif %}
-  {% endfor %}
-  {% endif %}
-</div>
+    {% if parish_message %}
+      <p>{{ parish_message }}</p>
+    {% else %}
+      <div class="flyer-list">
+        {% for flyer in parish_flyers %}
+          {% if flyer.image %}
+            <a class="flyer-item" href="{{ flyer.get_absolute_url }}">
+              <img
+                src="{{ flyer.image.url }}"
+                alt="{{ flyer.event_name }}, {{ flyer.description }}"
+                class="flyer-image"
+              >
+            </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
 
-<div class="flyer-list">
-  <h1>Mis Grupos</h1>
-  {% if group_message %}
-    <p>{{ group_message }}</p>
-  {% else %}
-  {% for flyer in group_flyers %}
-    {% if flyer.image %}
-      <a class="flyer-item" href="{{ flyer.get_absolute_url }}">
-        <img
-          src="{{ flyer.image.url }}"
-          alt="{{ flyer.event_name }}, {{ flyer.description}}"
-          class="flyer-image"
-        >
-      </a>
-  {% endif %}
-{% endfor %}
-{% endif %}
+  <section class="col">
+    <h1>Mis Grupos</h1>
+    {% if group_announcements %}
+      {% for announcement in group_announcements %}
+        <div class="announcement-box">
+          <p class="announcement-poster">{{ announcement.posted_by.name }}</p>
+          <p class="announcement-description">{{ announcement.description }}</p>
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% if group_message %}
+      <p>{{ group_message }}</p>
+    {% else %}
+      <div class="flyer-list">
+        {% for flyer in group_flyers %}
+          {% if flyer.image %}
+            <a class="flyer-item" href="{{ flyer.get_absolute_url }}">
+              <img
+                src="{{ flyer.image.url }}"
+                alt="{{ flyer.event_name }}, {{ flyer.description }}"
+                class="flyer-image"
+              >
+            </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
 </div>
 {% endblock content %}

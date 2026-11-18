@@ -1,9 +1,12 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.generic import ListView, DetailView, TemplateView
+from django.views.generic import ListView, DetailView
 from django.views import View
+from django.utils import timezone
 
 from .models import Poster, Flyer, Announcement
+
+from datetime import timedelta
 
 class FlyerListView(ListView):
     """ Shows all Flyers in the database. """
@@ -30,8 +33,14 @@ class FlyerFollowingView(LoginRequiredMixin, ListView):
             group_flyers = self.get_queryset().filter(posted_by_id__in=followed_groups) 
             if not group_flyers.exists():
                 context['group_message'] = 'Los Grupos que sigues aún no publican Flyers.'
+                context['group_announcements'] = Announcement.objects.filter(posted_by_id__in=followed_groups
+                                                                                             ).order_by('-pk')
             else:
                 context['group_flyers'] = group_flyers
+                last_week = timezone.now() - timedelta(days=7)
+                context['group_announcements'] = Announcement.objects.filter(posted_by_id__in=followed_groups,
+                                                                             upload_date__gte=last_week,
+                                                                            ).order_by('-upload_date')
 
         ## Check Parish-posted Flyers.
         if parish is None:
@@ -40,8 +49,12 @@ class FlyerFollowingView(LoginRequiredMixin, ListView):
             parish_flyers = self.get_queryset().filter(posted_by=parish)
             if not parish_flyers.exists():
                 context['parish_message'] = 'Esta Parroquia todavía no publica Flyers.'
+                context['parish_announcements'] = Announcement.objects.filter(posted_by=parish
+                                                                             ).latest('upload_date')
             else:
                 context['parish_flyers'] = parish_flyers
+                context['parish_announcements'] = Announcement.objects.filter(posted_by=parish
+                                                                             ).latest('upload_date')
 
         return context
 

@@ -35,6 +35,29 @@
   text-decoration: none;
 }
 
+.announcement-box {
+  background-color: #ff6f00;
+  color: rgb(1, 0, 75);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 0.25rem;
+}
+
+.announcement-box > :last-child {
+  margin-bottom: 0;
+}
+
+.announcement-poster {
+  margin-bottom: 0.25rem;
+  font-weight: 100;
+  font-size: 0.7rem;
+}
+
+.announcement-description {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+
 .flyer-list {
   display: flex;
   flex-wrap: wrap;
