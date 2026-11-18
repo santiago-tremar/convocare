@@ -4,7 +4,11 @@
 
 {% block content %}
 <div class="flyer-list">
-  {% for flyer in flyer_list %}
+  <h1>Mi Parroquia</h1>
+  {% if parish_message %}
+    <p>{{ parish_message }}</p>
+  {% else %}
+  {% for flyer in parish_flyers %}
     {% if flyer.image %}
       <a class="flyer-item" href="{{ flyer.get_absolute_url }}">
         <img
@@ -14,8 +18,26 @@
         >
       </a>
     {% endif %}
-  {% empty %}
-    <p>No flyers yet.</p>
+  {% endfor %}
+  {% endif %}
+</div>
+
+<div class="flyer-list">
+  <h1>Mis Grupos</h1>
+  {% if group_message %}
+    <p>{{ group_message }}</p>
+  {% else %}
+  {% for flyer in group_flyers %}
+    {% if flyer.image %}
+      <a class="flyer-item" href="{{ flyer.get_absolute_url }}">
+        <img
+          src="{{ flyer.image.url }}"
+          alt="{{ flyer.event_name }}, {{ flyer.description}}"
+          class="flyer-image"
+        >
+      </a>
+  {% endif %}
 {% endfor %}
+{% endif %}
 </div>
 {% endblock content %}

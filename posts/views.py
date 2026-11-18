@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, TemplateView
 from django.views import View
 
 from .models import Poster, Flyer, Announcement
@@ -22,18 +22,26 @@ class FlyerFollowingView(LoginRequiredMixin, ListView):
         parish = self.request.user.followed_parish
         groups = self.request.user.followed_groups.all() ## Get all data in this M2M field.
 
-        ## Create list of PKs of all followed Posters. Since Groups and Parishes share model,
-        ## they will always have unique PKs.
-        followed_posters = list(groups.values_list('pk', flat=True))
-        if parish is not None:
-            followed_posters.append(parish.pk)
-
-        if followed_posters:
-            context['flyer_list'] = self.get_queryset().filter(
-                posted_by_id__in=followed_posters
-            )
+        ## Create list for Group-posted Flyers.
+        if not groups.exists():
+            context['group_message'] = '¡No estás siguiendo algún grupo en este momento!'
         else:
-            context['flyer_list'] = self.get_queryset().none()
+            followed_groups = list(groups.values_list('pk', flat=True)) # Make a list of group's PKs.
+            group_flyers = self.get_queryset().filter(posted_by_id__in=followed_groups) 
+            if not group_flyers.exists():
+                context['group_message'] = 'Los Grupos que sigues aún no publican Flyers.'
+            else:
+                context['group_flyers'] = group_flyers
+
+        ## Check Parish-posted Flyers.
+        if parish is None:
+            context['parish_message'] = '¡No estás siguiendo una parroquia!'
+        else:
+            parish_flyers = self.get_queryset().filter(posted_by=parish)
+            if not parish_flyers.exists():
+                context['parish_message'] = 'Esta Parroquia todavía no publica Flyers.'
+            else:
+                context['parish_flyers'] = parish_flyers
 
         return context
 
