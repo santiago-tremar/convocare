@@ -13,6 +13,12 @@ class FlyerListView(ListView):
     model = Flyer
     template_name = 'flyer_list_all.html'
 
+    def get_context_data(self,**kwargs):
+        context = super().get_context_data(**kwargs)
+        context['flyer_list'] = self.get_queryset().order_by('-upload_date')
+
+        return context
+
 
 class FlyerFollowingView(LoginRequiredMixin, ListView):
     """ Shows Flyers for Posters the User follows. """
@@ -30,7 +36,7 @@ class FlyerFollowingView(LoginRequiredMixin, ListView):
             context['group_message'] = '¡No estás siguiendo algún grupo en este momento!'
         else:
             followed_groups = list(groups.values_list('pk', flat=True)) # Make a list of group's PKs.
-            group_flyers = self.get_queryset().filter(posted_by_id__in=followed_groups) 
+            group_flyers = self.get_queryset().filter(posted_by_id__in=followed_groups).order_by('-upload_date')
             if not group_flyers.exists():
                 context['group_message'] = 'Los Grupos que sigues aún no publican Flyers.'
                 context['group_announcements'] = Announcement.objects.filter(posted_by_id__in=followed_groups
@@ -68,6 +74,11 @@ class FlyerDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["poster_detail"] = self.object.posted_by # add author to context
+
+        context["target_tags"] = self.object.tags.filter(category='TARGET')
+        context["activity_tags"] = self.object.tags.filter(category='ACTIVITY')
+        context["organizer_tags"] = self.object.tags.filter(category='ORGANIZER')
+
         return context
 
 
@@ -78,7 +89,7 @@ class PosterDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["flyer_list"] = self.object.flyer_set.all() # add list from ManyToMany relationship
+        context["flyer_list"] = self.object.flyer_set.all().order_by('-upload_date') # add list from ManyToMany relationship
 
         user = self.request.user
         context["is_following"] = False

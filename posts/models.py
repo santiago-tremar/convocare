@@ -1,7 +1,22 @@
-from django.db import models, transaction
+from django.db import models
 from django.urls import reverse
 
 from phonenumber_field.modelfields import PhoneNumberField
+
+
+class Tag(models.Model):
+    """ Tags to identify and search Flyers. """
+    category_types = [
+        ('TARGET','pensado para'),
+        ('ACTIVITY','tipo de actividad'),
+        ('ORGANIZER','organizado por'),
+    ]
+
+    name = models.CharField(max_length=50)
+    category = models.CharField(choices=category_types)
+
+    def __str__(self):
+        return f"{self.name}"
 
 
 class Poster(models.Model):
@@ -40,6 +55,7 @@ class Flyer(models.Model):
     upload_date = models.DateTimeField(auto_now_add=True)
     event_date = models.DateField()
     event_start_time = models.TimeField()
+    tags = models.ManyToManyField(Tag)
     posted_by = models.ForeignKey(
         Poster,
         on_delete=models.CASCADE,
@@ -67,3 +83,4 @@ class Announcement(models.Model):
 
     def get_absolute_url(self):
         return reverse("announcement_detail", kwargs={"pk":self.pk})
+
