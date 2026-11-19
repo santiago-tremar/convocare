@@ -82,6 +82,11 @@ class FlyerTests(TestCase):
                     email='testuser@email.com',
                     password='testpass123',
                 )
+        self.other_user = get_user_model().objects.create_user(
+            username='otheruser',
+            email='otheruser@email.com',
+            password='testpass123',
+        )
         self.poster = Poster.objects.create(
                     poster_type = 'GROUP',
                     name = 'Test Group',
@@ -91,6 +96,8 @@ class FlyerTests(TestCase):
                     phone_number = '+521234567890',
                 )
         self.user.poster_for.add(self.poster)
+        self.user.can_post = True
+        self.user.save(update_fields=["can_post"])
 
         self.image_content = (
             Path(__file__).resolve().parents[1] / "media/images/IMG_0822.png"
@@ -108,6 +115,7 @@ class FlyerTests(TestCase):
             event_start_time = time(12, 12),
             posted_by = self.poster,
         )
+
         
     def test_flyer_model(self):
         self.assertEqual(self.flyer.event_name,'Awesome event')
@@ -137,11 +145,23 @@ class FlyerTests(TestCase):
         self.assertContains(response, "Awesome event")
         self.assertContains(response, '<img')
         self.assertContains(response, self.flyer.image.url)
+        self.assertNotContains(response, reverse("flyer_edit", kwargs={"pk": self.flyer.pk}))
+        self.assertNotContains(response, reverse("flyer_delete", kwargs={"pk": self.flyer.pk}))
         self.assertTemplateUsed(response, 'flyer_detail.html')
 
+    def test_flyer_detail_shows_actions_to_authorized_user(self):
+        self.client.force_login(self.user)
+        response = self.client.get(self.flyer.get_absolute_url())
+        self.assertContains(response, reverse("flyer_edit", kwargs={"pk": self.flyer.pk}))
+        self.assertContains(response, reverse("flyer_delete", kwargs={"pk": self.flyer.pk}))
+
+    def test_flyer_detail_does_not_show_actions_to_unauthorized_user(self):
+        self.client.force_login(self.other_user)
+        response = self.client.get(self.flyer.get_absolute_url())
+        self.assertNotContains(response, reverse("flyer_edit", kwargs={"pk": self.flyer.pk}))
+        self.assertNotContains(response, reverse("flyer_delete", kwargs={"pk": self.flyer.pk}))
+
     def test_flyer_edit_view_shows_current_tags_and_image(self):
-        self.user.can_post = True
-        self.user.save(update_fields=["can_post"])
         self.client.force_login(self.user)
 
         tags = {
@@ -158,11 +178,12 @@ class FlyerTests(TestCase):
         for field_name, tag in tags.items():
             self.assertEqual(response.context["form"][field_name].value(), [tag.pk])
 
-    def test_flyer_following_list_unauthenticated_view(self):
+    def test_flyer_following_list_if_not_logged_in(self):
         response = self.client.get(reverse("following_flyer_list"))
         self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, '/accounts/login/?next=/posts/following/')
 
-    def test_flyer_following_list_authenticated_view(self):
+    def test_flyer_following_list_if_logged_in(self):
         self.user.followed_groups.add(self.poster)
         self.client.force_login(self.user)
 
@@ -172,10 +193,134 @@ class FlyerTests(TestCase):
         self.assertContains(response, self.flyer.image.url)
         self.assertTemplateUsed(response, 'flyer_list_following.html')
 
+    def test_flyer_create_view(self):
+        self.client.login(username='testuser', password='testpass123')
 
+        target_tag = Tag.objects.create(name='Families',category='TARGET')
+        activity_tag = Tag.objects.create(name='Retreat',category='ACTIVITY')
+        organizer_tag = Tag.objects.create(name='Parish',category='ORGANIZER')
 
-# Flyer creation and tags: Submit a valid form with an image and tags from all three categories; verify the Flyer saves and all selected tags are attached. 
-# Also test that a missing required category or a tag from the wrong category is rejected.
-# Form widgets and description: Check the rendered form uses a textarea, type="date", and type="time". Check description line breaks appear on the detail page.
+        response = self.client.post(
+            reverse('flyer_new'),
+            {
+                'event_name': 'A new event',
+                'description': 'A new decription.',
+                'event_date': date(2026, 10, 10),
+                'event_start_time': time(11,11),
+                'posted_by': self.poster.pk,
+                'target_tags': [target_tag.pk],
+                'activity_tags': [activity_tag.pk],
+                'organizer_tags': [organizer_tag.pk],
+                'image': SimpleUploadedFile(
+                    name='test_image.png',
+                    content=self.image_content,
+                    content_type='image/png',
+                ),
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Flyer.objects.last().event_name, 'A new event')
+        self.assertEqual(Flyer.objects.last().posted_by, self.poster)
+        self.assertEqual(set(Flyer.objects.last().tags.all()), {
+        target_tag,
+        activity_tag,
+        organizer_tag,
+    })
+
+    def test_cannot_create_flyer_without_tags(self):
+        self.client.login(username='testuser', password='testpass123')
+
+        response = self.client.post(
+            reverse('flyer_new'),
+            {
+                'event_name': 'A new event',
+                'description': 'A new decription.',
+                'event_date': date(2026, 10, 10),
+                'event_start_time': time(11,11),
+                'posted_by': self.poster.pk,
+                'image': SimpleUploadedFile(
+                    name='test_image.png',
+                    content=self.image_content,
+                    content_type='image/png',
+                ),
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_cannot_create_flyer_with_one_tag_category_only(self):
+        self.client.login(username='testuser', password='testpass123')
+
+        target_tag = Tag.objects.create(name='Families',category='TARGET')
+
+        response = self.client.post(
+            reverse('flyer_new'),
+            {
+                'event_name': 'A new event',
+                'description': 'A new decription.',
+                'event_date': date(2026, 10, 10),
+                'event_start_time': time(11,11),
+                'posted_by': self.poster.pk,
+                'target_tags': [target_tag.pk],
+                'image': SimpleUploadedFile(
+                    name='test_image.png',
+                    content=self.image_content,
+                    content_type='image/png',
+                ),
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_flyer_update_view_for_poster_user(self):  # new
+        self.client.login(username="testuser", password="testpass123")
+
+        target_tag = Tag.objects.create(name='Families',category='TARGET')
+        activity_tag = Tag.objects.create(name='Retreat',category='ACTIVITY')
+        organizer_tag = Tag.objects.create(name='Parish',category='ORGANIZER')
+
+        response = self.client.post(
+            reverse("flyer_edit", args=[self.flyer.pk]),
+            {
+                'event_name': 'Updated title',
+                'description': 'An udated description.',
+                'event_date': date(2026, 10, 10),
+                'event_start_time': time(11,11),
+                'posted_by': self.poster.pk,
+                'target_tags': [target_tag.pk],
+                'activity_tags': [activity_tag.pk],
+                'organizer_tags': [organizer_tag.pk],
+                'image': SimpleUploadedFile(
+                    name='test_image.png',
+                    content=self.image_content,
+                    content_type='image/png',
+                ),
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.flyer.refresh_from_db()
+        self.assertEqual(self.flyer.event_name, "Updated title")
+        self.assertEqual(self.flyer.description, "An udated description.")
+
+    def test_flyer_update_view_forbidden_for_non_poster_user(self):  # new
+        self.client.login(username="otheruser", password="testpass123")
+        response = self.client.post(
+            reverse("flyer_edit", args=[self.flyer.pk]),
+            {"event_name": "Should not save", "event_description": "Should not save."},
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_flyer_delete_view_for_poster_user(self):  # new
+        self.client.login(username="testuser", password="testpass123")
+        response = self.client.post(
+            reverse("flyer_delete", args=[self.flyer.pk])
+        )
+        self.assertRedirects(response, reverse("flyer_list"))
+
+    def test_flyer_delete_view_forbidden_for_non_poster_user(self):  # new
+        self.client.login(username="otheruser", password="testpass123")
+        response = self.client.post(
+            reverse("flyer_delete", args=[self.flyer.pk])
+        )
+        self.assertEqual(response.status_code, 403)
+
 # Following-page branches: Test parish flyers, no followed groups, followed groups with no flyers, and recent versus older announcements. A parish with no announcements currently risks raising Announcement.DoesNotExist because the view calls .latest('upload_date').
 # Follow/unfollow behavior: Test group follow/unfollow, parish follow/unfollow, and the confirmation needed to switch parishes.

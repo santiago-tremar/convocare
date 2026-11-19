@@ -48,22 +48,25 @@
 
     <p class="text-muted">Publicado {{ flyer.upload_date }}</p>
 
-    <div class="d-flex gap-2">
-      <a href="{% url 'flyer_edit' flyer.pk %}" class="btn btn-info">
-        Editar
-      </a>
-      <button
-        type="button"
-        class="btn btn-danger"
-        data-bs-toggle="modal"
-        data-bs-target="#deleteFlyerModal"
-      >
-        Eliminar
-      </button>
-    </div>
+    {% if user.can_post and flyer.posted_by in user.poster_for.all %}
+      <div class="d-flex gap-2">
+        <a href="{% url 'flyer_edit' flyer.pk %}" class="btn btn-info">
+          Editar
+        </a>
+        <button
+          type="button"
+          class="btn btn-danger"
+          data-bs-toggle="modal"
+          data-bs-target="#deleteFlyerModal"
+        >
+          Eliminar
+        </button>
+      </div>
+    {% endif %}
   </div>
 </div>
 
+{% if user.can_post and flyer.posted_by in user.poster_for.all %}
 <div
   class="modal fade"
   id="deleteFlyerModal"
@@ -105,4 +108,5 @@
     </div>
   </div>
 </div>
+{% endif %}
 {% endblock content %}
