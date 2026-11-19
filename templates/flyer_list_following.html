@@ -9,6 +9,13 @@
     {% if parish_announcements %}
       <div class="announcement-box">
         <p class="announcement-description">{{ parish_announcements.description }}</p>
+        <p class="announcement-poster">
+          {% if parish_announcements.is_recent %}
+            Publicado hace {{ parish_announcements.days_since_posted }} día{{ parish_announcements.days_since_posted|pluralize }}
+          {% else %}
+            {{ parish_announcements.upload_date|date:"F j, Y" }}
+          {% endif %}
+        </p>
       </div>
     {% endif %}
     {% if parish_message %}
@@ -37,6 +44,13 @@
         <div class="announcement-box">
           <p class="announcement-poster">{{ announcement.posted_by.name }}</p>
           <p class="announcement-description">{{ announcement.description }}</p>
+          <p class="announcement-poster">
+            {% if announcement.is_recent %}
+              Publicado hace {{ announcement.days_since_posted }} día{{ announcement.days_since_posted|pluralize }}
+            {% else %}
+              {{ announcement.upload_date|date:"F j, Y" }}
+            {% endif %}
+          </p>
         </div>
       {% endfor %}
     {% endif %}

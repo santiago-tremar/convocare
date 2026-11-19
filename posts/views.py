@@ -11,6 +11,26 @@ from .forms import FlyerForm
 
 from datetime import timedelta
 
+
+class AnnouncementListView(DetailView):
+    """ Shows all Announcements of a given Poster. """
+    ## I know it looks like I'm mixing two View types.
+    ## I figured it would be the simplest way to get all Announcements from a single Poster.
+    model = Poster
+    template_name = 'announcement_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['announcement_list'] = self.object.announcement_set.all().order_by('-upload_date')
+        now = timezone.now()
+        for announcement in context['announcement_list']:
+            age = now - announcement.upload_date
+            announcement.is_recent = age.days < 7
+            announcement.days_since_posted = max(age.days, 0)
+
+        return context
+
+
 class FlyerListView(ListView):
     """ Shows all Flyers in the database. """
     model = Flyer
@@ -66,6 +86,18 @@ class FlyerFollowingView(LoginRequiredMixin, ListView):
                 parish_announcements = Announcement.objects.filter(posted_by=parish)
                 if parish_announcements.exists():
                     context["parish_announcements"] = parish_announcements.latest("upload_date")
+
+        now = timezone.now()
+        if context.get("parish_announcements"):
+            parish_announcement = context["parish_announcements"]
+            age = now - parish_announcement.upload_date
+            parish_announcement.is_recent = age.days < 7
+            parish_announcement.days_since_posted = max(age.days, 0)
+
+        for announcement in context.get("group_announcements", []):
+            age = now - announcement.upload_date
+            announcement.is_recent = age.days < 7
+            announcement.days_since_posted = max(age.days, 0)
 
         return context
 
@@ -147,6 +179,13 @@ class PosterDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["flyer_list"] = self.object.flyer_set.all().order_by('-upload_date') # add list from ManyToMany relationship
+        context['announcement_list'] = self.object.announcement_set.all().order_by('-upload_date')[:4]
+
+        now = timezone.now()
+        for announcement in context['announcement_list']:
+            age = now - announcement.upload_date
+            announcement.is_recent = age.days < 7
+            announcement.days_since_posted = max(age.days, 0)
 
         user = self.request.user
         context["is_following"] = False

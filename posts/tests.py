@@ -74,7 +74,12 @@ class AnnouncementTests(TestCase):
         self.assertEqual(self.announcement.description, 'An important announcement.')
         self.assertEqual(self.announcement.posted_by.name, 'Test Group')
         self.assertEqual(str(self.announcement), "A sample announcement by Test Group")
-        # Missing Reverse match, no URL created yet.
+
+    def test_announcement_list_view(self):
+        response = self.client.get(reverse('announcement_list', kwargs={'pk':self.poster.pk}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'An important announcement.')
+        self.assertTemplateUsed(response, 'announcement_list.html')
 
 class FlyerTests(TestCase):
     def setUp(self):

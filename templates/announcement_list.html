@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Avisos de {{ poster.name }}{% endblock title %}
+
+{% block content %}
+  <div class="container text-center mb-4">
+    <div class="row">
+      <div class="col">
+        <h6>{{ poster.get_poster_type_display }}</h6>
+        <h1>{{ poster.name }}</h1>
+        <h4>{{ poster.bio }}</h4>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mb-4">
+    {% for announcement in announcement_list %}
+      <div class="announcement-box">
+        <p class="announcement-description">{{ announcement.description }}</p>
+        <p class="announcement-poster">
+          {% if announcement.is_recent %}
+            Publicado hace {{ announcement.days_since_posted }} día{{ announcement.days_since_posted|pluralize }}
+          {% else %}
+            {{ announcement.upload_date|date:"F j, Y" }}
+          {% endif %}
+        </p>
+      </div>
+    {% empty %}
+      <p>{{ poster.name }} no ha publicado avisos todavía.</p>
+    {% endfor %}
+  </div>
+{% endblock content %}
