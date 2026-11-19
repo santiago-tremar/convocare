@@ -43,7 +43,7 @@ class FlyerFollowingView(LoginRequiredMixin, ListView):
             if not group_flyers.exists():
                 context['group_message'] = 'Los Grupos que sigues aún no publican Flyers.'
                 context['group_announcements'] = Announcement.objects.filter(posted_by_id__in=followed_groups
-                                                                                             ).order_by('-pk')
+                                                                                             ).order_by('-upload_date')
             else:
                 context['group_flyers'] = group_flyers
                 last_week = timezone.now() - timedelta(days=7)
@@ -58,12 +58,14 @@ class FlyerFollowingView(LoginRequiredMixin, ListView):
             parish_flyers = self.get_queryset().filter(posted_by=parish)
             if not parish_flyers.exists():
                 context['parish_message'] = 'Esta Parroquia todavía no publica Flyers.'
-                context['parish_announcements'] = Announcement.objects.filter(posted_by=parish
-                                                                             ).latest('upload_date')
+                parish_announcements = Announcement.objects.filter(posted_by=parish)
+                if parish_announcements.exists():
+                    context["parish_announcements"] = parish_announcements.latest("upload_date")
             else:
                 context['parish_flyers'] = parish_flyers
-                context['parish_announcements'] = Announcement.objects.filter(posted_by=parish
-                                                                             ).latest('upload_date')
+                parish_announcements = Announcement.objects.filter(posted_by=parish)
+                if parish_announcements.exists():
+                    context["parish_announcements"] = parish_announcements.latest("upload_date")
 
         return context
 

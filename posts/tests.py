@@ -2,8 +2,9 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils import timezone
 
-from datetime import date, time
+from datetime import date, time, timedelta
 from pathlib import Path
 
 from .models import Poster, Flyer, Announcement, Tag
@@ -322,5 +323,125 @@ class FlyerTests(TestCase):
         )
         self.assertEqual(response.status_code, 403)
 
-# Following-page branches: Test parish flyers, no followed groups, followed groups with no flyers, and recent versus older announcements. A parish with no announcements currently risks raising Announcement.DoesNotExist because the view calls .latest('upload_date').
-# Follow/unfollow behavior: Test group follow/unfollow, parish follow/unfollow, and the confirmation needed to switch parishes.
+    def test_following_page_parish_flyers(self):
+        parish = Poster.objects.create(
+            poster_type="PARISH",
+            name="Test Parish",
+            bio="A parish",
+            address="Test Street",
+            email="parish@example.com",
+        )
+        self.user.followed_parish = parish
+        self.user.save(update_fields=["followed_parish"])
+
+        Flyer.objects.create(
+            event_name="Parish event",
+            description="A parish event",
+            event_date=date(2026, 10, 10),
+            event_start_time=time(11, 11),
+            posted_by=parish,
+            image=SimpleUploadedFile(
+                name="parish.png",
+                content=self.image_content,
+                content_type="image/png",
+            ),
+        )
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("following_flyer_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Parish event")
+
+    def test_following_page_with_no_followed_groups(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("following_flyer_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "¡No estás siguiendo algún grupo en este momento!",
+        )
+
+    def test_following_page_followed_group_with_no_flyers(self):
+        empty_group = Poster.objects.create(
+            poster_type="GROUP",
+            name="Empty Group",
+            bio="No flyers",
+            address="Test Street",
+            email="empty@example.com",
+        )
+        self.user.followed_groups.add(empty_group)
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("following_flyer_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Los Grupos que sigues aún no publican Flyers.",
+        )
+
+    def test_following_page_recent_vs_old_announcements(self):
+        recent = Announcement.objects.create(
+            title="Recent announcement",
+            description="Recent",
+            posted_by=self.poster,
+        )
+        older = Announcement.objects.create(
+            title="Old announcement",
+            description="Old",
+            posted_by=self.poster,
+        )
+        Announcement.objects.filter(pk=older.pk).update(
+            upload_date=timezone.now() - timedelta(days=8)
+        )
+
+        self.user.followed_groups.add(self.poster)
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("following_flyer_list"))
+
+        self.assertContains(response, "Recent")
+        self.assertNotContains(response, "Old")
+
+    def test_toggle_group_follow(self):
+        self.client.force_login(self.user)
+        url = reverse("toggle_follow", args=[self.poster.pk])
+
+        response = self.client.post(url)
+        self.assertRedirects(response, self.poster.get_absolute_url())
+        self.assertTrue(
+            self.user.followed_groups.filter(pk=self.poster.pk).exists()
+        )
+
+        response = self.client.post(url)
+        self.assertRedirects(response, self.poster.get_absolute_url())
+        self.assertFalse(
+            self.user.followed_groups.filter(pk=self.poster.pk).exists()
+        )
+
+    def test_toggle_parish_follow(self):
+        parish = Poster.objects.create(
+            poster_type="PARISH",
+            name="Test Parish",
+            bio="A parish",
+            address="Test Street",
+            email="parish@example.com",
+        )
+
+        self.client.force_login(self.user)
+        url = reverse("toggle_follow", args=[parish.pk])
+
+        response = self.client.post(url)
+        self.user.refresh_from_db()
+
+        self.assertRedirects(response, parish.get_absolute_url())
+        self.assertEqual(self.user.followed_parish, parish)
+
+        response = self.client.post(url)
+        self.user.refresh_from_db()
+
+        self.assertRedirects(response, parish.get_absolute_url())
+        self.assertIsNone(self.user.followed_parish)
