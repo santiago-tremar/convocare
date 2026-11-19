@@ -152,3 +152,11 @@ class FlyerTests(TestCase):
         self.assertContains(response, "<img")
         self.assertContains(response, self.flyer.image.url)
         self.assertTemplateUsed(response, 'flyer_list_following.html')
+
+
+
+# Flyer creation and tags: Submit a valid form with an image and tags from all three categories; verify the Flyer saves and all selected tags are attached. 
+# Also test that a missing required category or a tag from the wrong category is rejected.
+# Form widgets and description: Check the rendered form uses a textarea, type="date", and type="time". Check description line breaks appear on the detail page.
+# Following-page branches: Test parish flyers, no followed groups, followed groups with no flyers, and recent versus older announcements. A parish with no announcements currently risks raising Announcement.DoesNotExist because the view calls .latest('upload_date').
+# Follow/unfollow behavior: Test group follow/unfollow, parish follow/unfollow, and the confirmation needed to switch parishes.

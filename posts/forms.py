@@ -3,7 +3,7 @@ from django import forms
 from .models import Flyer, Tag
 
 class FlyerForm(forms.ModelForm):
-    """ Custom labels when Creating a new Flyer. """
+    """ Custom Form when Creating a new Flyer. """
     target_tags = forms.ModelMultipleChoiceField(
         queryset=Tag.objects.filter(category="TARGET").order_by("name"),
         label="Pensado para: ",

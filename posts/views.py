@@ -1,4 +1,4 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import ListView, DetailView
 from django.views.generic.edit import CreateView
@@ -75,7 +75,7 @@ class FlyerDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["poster_detail"] = self.object.posted_by # add author to context
+        context["poster_detail"] = self.object.posted_by # add 'author' to context
 
         context["target_tags"] = self.object.tags.filter(category='TARGET')
         context["activity_tags"] = self.object.tags.filter(category='ACTIVITY')
@@ -84,11 +84,21 @@ class FlyerDetailView(DetailView):
         return context
 
 
-class FlyerCreateView(CreateView):
+class FlyerCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     """ Post a new Flyer. """
     model = Flyer
     template_name = "flyer_new.html"
     form_class = FlyerForm
+
+    ## Limit access to users with can_post permission.
+    def test_func(self):
+        return self.request.user.can_post
+
+    ## Parse only poster_for Posters to the Form.
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['posted_by'].queryset = self.request.user.poster_for.all()
+        return form
 
 
 class PosterDetailView(DetailView):
