@@ -1,9 +1,10 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import ListView, DetailView
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views import View
 from django.utils import timezone
+from django.urls import reverse_lazy
 
 from .models import Poster, Flyer, Announcement
 from .forms import FlyerForm
@@ -83,6 +84,41 @@ class FlyerDetailView(DetailView):
 
         return context
 
+class FlyerDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """ Delete an already posted Flyer. """
+    model = Flyer
+    success_url = reverse_lazy('flyer_list')
+
+    def test_func(self):
+        flyer = self.get_object()
+        return (
+            self.request.user.can_post
+            and self.request.user.poster_for.filter(
+                pk=flyer.posted_by_id
+            ).exists()
+        )
+
+class FlyerEditView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """ Edit an already posted Flyer. """
+    model = Flyer
+    template_name = 'flyer_edit.html'
+    form_class = FlyerForm
+
+    ## Limit access to users with can_post permission.
+    def test_func(self):
+        flyer = self.get_object()
+        return (
+            self.request.user.can_post
+            and self.request.user.poster_for.filter(
+                pk=flyer.posted_by_id
+            ).exists()
+        )
+
+    ## Parse only poster_for Posters to the Form.
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['posted_by'].queryset = self.request.user.poster_for.all()
+        return form
 
 class FlyerCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     """ Post a new Flyer. """

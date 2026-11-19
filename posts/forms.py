@@ -20,6 +20,18 @@ class FlyerForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            for field_name, category in (
+                ("target_tags", "TARGET"),
+                ("activity_tags", "ACTIVITY"),
+                ("organizer_tags", "ORGANIZER"),
+            ):
+                self.fields[field_name].initial = self.instance.tags.filter(
+                    category=category
+                )
+
     class Meta:
         model = Flyer
         fields = (

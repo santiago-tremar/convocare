@@ -6,7 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from datetime import date, time
 from pathlib import Path
 
-from .models import Poster, Flyer, Announcement
+from .models import Poster, Flyer, Announcement, Tag
 
 class PosterTests(TestCase):
     def setUp(self):
@@ -138,6 +138,25 @@ class FlyerTests(TestCase):
         self.assertContains(response, '<img')
         self.assertContains(response, self.flyer.image.url)
         self.assertTemplateUsed(response, 'flyer_detail.html')
+
+    def test_flyer_edit_view_shows_current_tags_and_image(self):
+        self.user.can_post = True
+        self.user.save(update_fields=["can_post"])
+        self.client.force_login(self.user)
+
+        tags = {
+            "target_tags": Tag.objects.create(name="Families", category="TARGET"),
+            "activity_tags": Tag.objects.create(name="Retreat", category="ACTIVITY"),
+            "organizer_tags": Tag.objects.create(name="Parish", category="ORGANIZER"),
+        }
+        self.flyer.tags.add(*tags.values())
+
+        response = self.client.get(reverse("flyer_edit", kwargs={"pk": self.flyer.pk}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'src="{self.flyer.image.url}"')
+        for field_name, tag in tags.items():
+            self.assertEqual(response.context["form"][field_name].value(), [tag.pk])
 
     def test_flyer_following_list_unauthenticated_view(self):
         response = self.client.get(reverse("following_flyer_list"))

@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block title %}{{ flyer.event_name }}{% endblock title %}
@@ -16,25 +17,92 @@
 
   <div class="col-md-6">
     <h2>{{ flyer.event_name }}</h2>
-    <a href="{{ poster_detail.get_absolute_url }}"><p>Por {{ flyer.posted_by }}</p></a>
+    <p>
+      <a href="{{ poster_detail.get_absolute_url }}">
+        Por {{ flyer.posted_by }}
+      </a>
+    </p>
     <p>Evento: {{ flyer.event_date }} a las {{ flyer.event_start_time }}</p>
     <p>{{ flyer.description|linebreaksbr }}</p>
-    <p>Para:
+
+    <p>
+      Para:
       {% for tag in target_tags %}
         <span class="tag-pill target-tag">{{ tag.name }}</span>
       {% endfor %}
     </p>
-    <p>Actividades:
+
+    <p>
+      Actividades:
       {% for tag in activity_tags %}
         <span class="tag-pill activity-tag">{{ tag.name }}</span>
       {% endfor %}
     </p>
-    <p>Impartido por:
+
+    <p>
+      Impartido por:
       {% for tag in organizer_tags %}
         <span class="tag-pill organizer-tag">{{ tag.name }}</span>
       {% endfor %}
     </p>
+
     <p class="text-muted">Publicado {{ flyer.upload_date }}</p>
+
+    <div class="d-flex gap-2">
+      <a href="{% url 'flyer_edit' flyer.pk %}" class="btn btn-info">
+        Editar
+      </a>
+      <button
+        type="button"
+        class="btn btn-danger"
+        data-bs-toggle="modal"
+        data-bs-target="#deleteFlyerModal"
+      >
+        Eliminar
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="deleteFlyerModal"
+  tabindex="-1"
+  aria-labelledby="deleteFlyerModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="deleteFlyerModalLabel">
+          ¿Eliminar este flyer?
+        </h2>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Cerrar"
+        ></button>
+      </div>
+
+      <div class="modal-body">Esta acción no se puede deshacer.</div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+        >
+          Cancelar
+        </button>
+        <form method="post" action="{% url 'flyer_delete' flyer.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">
+            Confirmar eliminación
+          </button>
+        </form>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock content %}
