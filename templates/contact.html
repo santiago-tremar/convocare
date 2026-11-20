@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Contacto{% endblock title %}
+
+{% block content %}
+<title>¡Contáctanos!</title>
+<p>En esta página puedes contactar a los administradores directamente por medio de un correo electrónico,
+o hacer una solicitud para registrar un nuevo Grupo o Parroquia y comenzar a compartir tus eventos.</p>
+
+<p><a href="{% url 'contact_admin' %}">Contacta a los administradores.</a></p>
+<p><a href="{% url 'poster_request' %}">Registra tu Grupo o Parroquia.</a></p>
+
+{% endblock content %}

@@ -141,6 +141,8 @@ MAILERS = {
     },
 }
 
+ADMINS = [("Admin", "john@appleseed.com")]  # Remember to place environmental variable.
+
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 MEDIA_URL = "/media/"

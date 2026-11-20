@@ -47,6 +47,7 @@ class SignupPageTests(TestCase):
             reverse('signup'),
             {
                 'username': 'testuser',
+                'first_name': 'John',
                 'email': 'testuser@email.com',
                 'password1': 'testpass123',
                 'password2': 'testpass123',

@@ -9,12 +9,14 @@ class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
     form = CustomUserChangeForm
     model = CustomUser
+
     list_display = [
         'email',
         'username',
         'can_post',
         'is_staff',
     ]
+    
     fieldsets = UserAdmin.fieldsets + ((None, {'fields': ('can_post','poster_for',)}),)
     add_fieldsets = (
         (

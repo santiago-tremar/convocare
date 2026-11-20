@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Perfil{% endblock title %}
+
+{% block content %}
+
+<h1>{{ object.first_name }} {{ object.last_name }}</h1>
+
+<p>Correo electrónico: {{ object.email }}</p>
+
+{% if object.poster_for.exists %}
+  <h4>Páginas que administras.</h4>
+  {% for poster in object.poster_for.all %}
+    <p><a href="{% url 'poster_detail' poster.pk %}">{{ poster.name }}</a></p>
+  {% endfor %}
+{% endif %}
+
+<h4>Mi Parroquia</h4>
+{% if object.followed_parish %}
+  <p><a href="{% url 'poster_detail' object.followed_parish.pk %}">{{ object.followed_parish.name }}</a></p>
+{% else %}
+  <p>No sigues una parroquia todavía.</p>
+{% endif %}
+
+<h4>Mis Grupos</h4>
+{% for poster in object.followed_groups.all %}
+  <p><a href="{% url 'poster_detail' poster.pk %}">{{ poster.name }}</a></p>
+{% empty %}
+  <p>No sigues grupos todavía.</p>
+{% endfor %}
+
+{% endblock content %}

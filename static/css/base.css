@@ -35,6 +35,17 @@
   text-decoration: none;
 }
 
+.footer {
+  color: #adb5bd;
+  font-size: 0.5rem;
+  font-weight: 100;
+  text-align: left;
+}
+
+.footer a {
+  color: inherit;
+}
+
 .announcement-box {
   background-color: #ff6f00;
   color: rgb(1, 0, 75);

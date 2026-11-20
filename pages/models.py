@@ -1,3 +1,6 @@
-from django.db import models
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import DetailView
 
-# Create your models here.
+from accounts.models import CustomUser
+
+
